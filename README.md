@@ -1,3 +1,3 @@
 # Tutorials and Guides
 
-Notebooks demonstrating quick and powerful ways to use BioLM.
+Notebooks demonstrating how to quickly get started with BioLM, and tutorials demonstrating how to use large language modelings outputs for various DNA and protein machine learning tasks.
