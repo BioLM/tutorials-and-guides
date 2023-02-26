@@ -1,6 +1,6 @@
 # Tutorials and Guides
 
-Notebooks demonstrating how to quickly get started with BioLM, and tutorials demonstrating how to use modeling outputs for various DNA and protein machine learning tasks.
+Notebooks demonstrating how to quickly get started with BioLM, and tutorials demonstrating how to use modeling outputs for various DNA and protein prediction tasks.
 
 [Generate SARS-Cov-2 Antibodies with GPT2 Model Finetuned on Public SARS-Cov-2 Antibodies](protein/generate/GPT2_Directed_Undirected_Antibody_Generation.ipynb)
 
