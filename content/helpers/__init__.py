@@ -1,10 +1,10 @@
-import json
-import js
-from pyodide.ffi import to_js
-from js import Object
 
 
 async def jlite_post(model_slug, action, data, api_token):
+    import json
+    import js
+    from pyodide.ffi import to_js
+
     action = action.strip().lower()
     model_slug = model_slug.strip()
     api_token = api_token.strip()
@@ -17,7 +17,7 @@ async def jlite_post(model_slug, action, data, api_token):
         "credentials": "same-origin",
         "headers": {"Content-Type": "application/json",
                     "Authorization": f"Token {api_token}"}
-    }, dict_converter=Object.fromEntries))
+    }, dict_converter=js.Object.fromEntries))
 
     res = await resp.text()
     json_resp = json.loads(res)
