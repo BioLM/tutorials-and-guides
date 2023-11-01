@@ -1,8 +1,6 @@
 import json
-import asyncio
 
 
-@asyncio.coroutine
 async def jlite_post(model_slug, action, data, api_token):
     from pyodide.ffi import to_js
     from IPython.display import JSON
