@@ -1,11 +1,10 @@
+import json
+import js
+from pyodide.ffi import to_js
+from js import Object
 
 
 async def jlite_post(model_slug, action, data, api_token):
-    import json
-    import js
-    from pyodide.ffi import to_js
-    from js import Object
-
     action = action.strip().lower()
     model_slug = model_slug.strip()
     api_token = api_token.strip()
