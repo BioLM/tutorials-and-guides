@@ -1,5 +1,4 @@
 
-
 async def jlite_post(model_slug, action, data, api_token):
     import json
     import js
@@ -22,3 +21,32 @@ async def jlite_post(model_slug, action, data, api_token):
     res = await resp.text()
     json_resp = json.loads(res)
     return json_resp
+
+
+def requests_post(model_slug, action, data, api_token):
+    import requests
+    import json
+
+    action = action.strip().lower()
+    model_slug = model_slug.strip()
+    api_token = api_token.strip()
+    assert isinstance(data, dict)
+    data_str = json.dumps(data)
+
+    resp = requests.post(
+        f'https://biolm.ai/api/v1/models/{model_slug}/{action}/',
+        data=data_str,
+        headers={"Content-Type": "application/json",
+                 "Authorization": f"Token {api_token}"}
+    )
+
+    json_resp = resp.json()
+    return json_resp
+
+
+def get_api_function():
+    try:
+        from js import fetch
+        return jlite_post
+    except ImportError:
+        return requests_post
