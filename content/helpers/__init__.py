@@ -23,7 +23,7 @@ async def jlite_post(model_slug, action, data, api_token):
     return json_resp
 
 
-def requests_post(model_slug, action, data, api_token):
+async def requests_post(model_slug, action, data, api_token):
     import requests
     import json
 
@@ -44,7 +44,7 @@ def requests_post(model_slug, action, data, api_token):
     return json_resp
 
 
-def get_api_function():
+async def get_api_function():
     try:
         from js import fetch
         return jlite_post
