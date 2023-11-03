@@ -249,3 +249,5 @@ dmypy.json
 *.doit.db
 _output
 
+# Pycharm
+.idea/*
