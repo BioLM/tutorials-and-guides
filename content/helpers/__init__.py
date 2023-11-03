@@ -50,3 +50,12 @@ async def get_api_function():
         return jlite_post
     except ImportError:
         return requests_post
+
+
+async def api_caller(model_slug, action, data, api_token):
+    params = {'model_slug': model_slug, 'action': action, 'data': data, 'api_token': api_token}
+    try:
+        from js import fetch
+        return await jlite_post(**params)
+    except ImportError:
+        return await requests_post(**params)
