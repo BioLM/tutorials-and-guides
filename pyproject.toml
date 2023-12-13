@@ -17,7 +17,6 @@ select = [
     "W", # pycode warnings
 ]
 extend-ignore = [
-#    "F401", # Let isort handle unused imports
     "E501", # Let black handle line length
     "F821", # For need of global names
 ]

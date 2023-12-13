@@ -84,6 +84,10 @@ def get_api_token():
     headers = {"Content-Type": "application/json"}
 
     response = requests.request("POST", url, headers=headers, data=payload)
+
+    if response.status_code != 200:
+        raise ValueError("Failed to get API token")
+
     response_json = response.json()
 
     os.environ["BIOLM_ACCESS"] = response_json["access"]
@@ -100,13 +104,10 @@ def esm2_transform(seq):
     # but for simplicity sake will do one at at time right now
     payload = json.dumps({"instances": [{"data": {"text": seq}}]})
 
-    try:
-        access = os.environ.get("BIOLM_ACCESS")
-        assert access
-        refresh = os.environ.get("BIOLM_REFRESH")
-        assert refresh
-    except AssertionError:
-        raise AssertionError("BioLM access or refresh token not set") from None
+    access = os.environ.get("BIOLM_ACCESS")
+    refresh = os.environ.get("BIOLM_REFRESH")
+    if not access or not refresh:
+        raise ValueError("BioLM access or refresh token not set")
 
     headers = {
         "Cookie": f"access={access};refresh={refresh}",
@@ -133,13 +134,10 @@ def esmfold_pdb(seq):
     # but for simplicity sake will do one at at time right now
     payload = json.dumps({"instances": [{"data": {"text": seq}}]})
 
-    try:
-        access = os.environ.get("BIOLM_ACCESS")
-        assert access
-        refresh = os.environ.get("BIOLM_REFRESH")
-        assert refresh
-    except AssertionError:
-        raise AssertionError("BioLM access or refresh token not set") from None
+    access = os.environ.get("BIOLM_ACCESS")
+    refresh = os.environ.get("BIOLM_REFRESH")
+    if not access or not refresh:
+        raise ValueError("BioLM access or refresh token not set")
 
     headers = {
         "Cookie": f"access={access};refresh={refresh}",
