@@ -43,3 +43,7 @@ requests
 matplotlib
 numpy
 six
+
+# Development
+black
+ruff

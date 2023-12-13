@@ -1,33 +1,36 @@
-import json, os, requests
-import urllib3
 import datetime
+import json
+import logging
+import os
 import time
 
+import requests
+import urllib3
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-import logging
-
-log = logging.getLogger('biolm_util')
+log = logging.getLogger("biolm_util")
 
 
 def requests_retry_session(
     retries=3,
     backoff_factor=0.3,
-    status_forcelist=list(range(400, 599)),
+    status_forcelist=None,
     session=None,
 ):
+    if status_forcelist is None:
+        status_forcelist = list(range(400, 599))
     session = session or requests.Session()
     retry = Retry(
         total=retries,
         read=retries,
         connect=retries,
         backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist
+        status_forcelist=status_forcelist,
     )
     adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     return session
 
 
@@ -39,15 +42,10 @@ def retry_minutes(sess, URL, HEADERS, dat, timeout, mins):
         while datetime.datetime.now() < try_until:
             response = None
             try:
-                log.info('Trying {}'.format(datetime.datetime.now()))
-                response = sess.post(
-                    URL,
-                    headers=HEADERS,
-                    data=dat,
-                    timeout=timeout
-                )
+                log.info(f"Trying {datetime.datetime.now()}")
+                response = sess.post(URL, headers=HEADERS, data=dat, timeout=timeout)
                 response.raise_for_status()
-                if 'error' in response.json():
+                if "error" in response.json():
                     raise ValueError(response.json().dumps())
                 else:
                     break
@@ -59,12 +57,12 @@ def retry_minutes(sess, URL, HEADERS, dat, timeout, mins):
         if response is None:
             err = "Got Nonetype response"
             raise ValueError(err)
-        elif 'Server Error' in response.text:
+        elif "Server Error" in response.text:
             err = "Got Server Error"
             raise ValueError(err)
         else:
             response.raise_for_status()
-    except Exception as e:
+    except Exception:
         raise
     else:
         return response
@@ -72,102 +70,87 @@ def retry_minutes(sess, URL, HEADERS, dat, timeout, mins):
 
 def get_api_token():
     """Get a BioLM API token to use with future API requests.
-    
+
     Copied from https://api.biolm.ai/#d7f87dfd-321f-45ae-99b6-eb203519ddeb.
     """
     url = "https://biolm.ai/api/auth/token/"
 
-    payload = json.dumps({
-      "username": os.environ.get("BIOLM_USER"),
-      "password": os.environ.get("BIOLM_PASS")
-    })
-    headers = {
-      'Content-Type': 'application/json'
-    }
+    payload = json.dumps(
+        {
+            "username": os.environ.get("BIOLM_USER"),
+            "password": os.environ.get("BIOLM_PASS"),
+        }
+    )
+    headers = {"Content-Type": "application/json"}
 
     response = requests.request("POST", url, headers=headers, data=payload)
     response_json = response.json()
-    
-    os.environ['BIOLM_ACCESS'] = response_json['access']
-    os.environ['BIOLM_REFRESH'] = response_json['refresh']
+
+    os.environ["BIOLM_ACCESS"] = response_json["access"]
+    os.environ["BIOLM_REFRESH"] = response_json["refresh"]
 
     return response_json
-
 
 
 def esm2_transform(seq):
     """Make a POST request to get the ESM2 transforms for a protein sequence."""
     url = "https://biolm.ai/api/v1/models/esm2_t33_650M_UR50D/transform/"
-    
+
     # Normally would POST multiple sequences at once for greater efficiency,
     # but for simplicity sake will do one at at time right now
-    payload = json.dumps({
-      "instances": [
-        {
-          "data": {
-            "text": seq
-          }
-        }
-      ]
-    })
-    
+    payload = json.dumps({"instances": [{"data": {"text": seq}}]})
+
     try:
-        access = os.environ.get('BIOLM_ACCESS')
+        access = os.environ.get("BIOLM_ACCESS")
         assert access
-        refresh = os.environ.get('BIOLM_REFRESH')
+        refresh = os.environ.get("BIOLM_REFRESH")
         assert refresh
     except AssertionError:
-        raise AssertionError("BioLM access or refresh token not set")
-    
+        raise AssertionError("BioLM access or refresh token not set") from None
+
     headers = {
-      'Cookie': 'access={};refresh={}'.format(access, refresh),
-      'Content-Type': 'application/json'
+        "Cookie": f"access={access};refresh={refresh}",
+        "Content-Type": "application/json",
     }
-    
+
     session = requests_retry_session()
     tout = urllib3.util.Timeout(total=720, read=360)
     response = session.post(url, headers=headers, data=payload, timeout=tout)
 
     resp_json = response.json()
-    transformations = resp_json['predictions']  # List, containing dicts for each sequence POSTed
-    
+    transformations = resp_json[
+        "predictions"
+    ]  # List, containing dicts for each sequence POSTed
+
     return transformations  # list of dict_keys(['name', 'mean_representations', 'contacts', 'logits', 'attentions'])
 
 
 def esmfold_pdb(seq):
     """Make a POST request to predict a PDB file using ESMFold (i.e. ESM2)."""
     url = "https://biolm.ai/api/v1/models/esmfold-singlechain/predict/"
-    
+
     # Normally would POST multiple sequences at once for greater efficiency,
     # but for simplicity sake will do one at at time right now
-    payload = json.dumps({
-      "instances": [
-        {
-          "data": {
-            "text": seq
-          }
-        }
-      ]
-    })
-    
+    payload = json.dumps({"instances": [{"data": {"text": seq}}]})
+
     try:
-        access = os.environ.get('BIOLM_ACCESS')
+        access = os.environ.get("BIOLM_ACCESS")
         assert access
-        refresh = os.environ.get('BIOLM_REFRESH')
+        refresh = os.environ.get("BIOLM_REFRESH")
         assert refresh
     except AssertionError:
-        raise AssertionError("BioLM access or refresh token not set")
-    
+        raise AssertionError("BioLM access or refresh token not set") from None
+
     headers = {
-      'Cookie': 'access={};refresh={}'.format(access, refresh),
-      'Content-Type': 'application/json'
+        "Cookie": f"access={access};refresh={refresh}",
+        "Content-Type": "application/json",
     }
 
     session = requests_retry_session()
     tout = urllib3.util.Timeout(total=180, read=180)
     response = retry_minutes(session, url, headers, payload, tout, mins=12)
 
-    resp_json = response.json()  
+    resp_json = response.json()
     # resp_json['predictions']  # List, one item for each sequence POSTed
-    
-    return resp_json['predictions'][0]
+
+    return resp_json["predictions"][0]
