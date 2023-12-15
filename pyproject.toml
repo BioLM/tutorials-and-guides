@@ -1,0 +1,27 @@
+[tool.black]
+target-version = ['py39']
+quiet = true
+include = '\.pyi?$'
+exclude = '\.venv'
+
+[tool.ruff]
+target-version = "py39"
+select = [
+    "B", # flake8-bugbear
+    "C", # flake8-comprehensions
+    "C90", # mccabe
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "UP", # pyupgrade
+    "W", # pycode warnings
+]
+extend-ignore = [
+    "E501", # Let black handle line length
+    "F821", # For need of global names
+]
+fix = true
+exclude = [
+    ".venv",
+    # any other directories or files to exclude
+]
