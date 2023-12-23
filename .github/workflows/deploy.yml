@@ -25,6 +25,8 @@ jobs:
         run: |
           cp README.md content
           python -c "import sys; print (sys.path)"
+          echo "$HOME"
+          whoami
           which conda
           jt -t grade3
           jupyter lite build --contents content --output-dir dist
