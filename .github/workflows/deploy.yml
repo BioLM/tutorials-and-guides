@@ -30,6 +30,7 @@ jobs:
           echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > /opt/hostedtoolcache/Python/3.10.13/x64/share/jupyter/lab/settings/overrides.json
           jupyter lite build --contents content --output-dir dist
           find dist -type d -iname lab\*
+          find /home/runner/work/tutorials-and-guides/ -type d -iname lab
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
