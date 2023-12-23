@@ -24,8 +24,8 @@ jobs:
       - name: Build the JupyterLite site
         run: |
           cp README.md content
+          echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > /home/runner/.jupyter/lab/user-settings/overrides.json
           jupyter lite build --contents content --output-dir dist
-          jupyter lab path
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
