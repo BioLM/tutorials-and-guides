@@ -24,12 +24,8 @@ jobs:
       - name: Build the JupyterLite site
         run: |
           cp README.md content
-          python -c "import sys; print (sys.path)"
-          echo "$HOME"
-          whoami
-          which conda
-          jt -t grade3
           jupyter lite build --contents content --output-dir dist
+          jupyter lab path
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
