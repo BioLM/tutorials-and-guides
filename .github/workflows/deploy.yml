@@ -24,8 +24,7 @@ jobs:
       - name: Build the JupyterLite site
         run: |
           cp README.md content
-          which jupyter
-          where jupyter
+          python -c "import sys; print (sys.path)"
           jt -t grade3
           jupyter lite build --contents content --output-dir dist
       - name: Upload artifact
