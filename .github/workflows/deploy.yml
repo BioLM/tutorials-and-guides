@@ -24,11 +24,6 @@ jobs:
       - name: Build the JupyterLite site
         run: |
           cp README.md content
-          git clone https://github.com/kuzen/jupyterlab-atom-one-light
-          cd jupyterlab-atom-one-light
-          npm install
-          jupyter labextension install .
-          cd -
           jupyter lite build --contents content --output-dir dist
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
