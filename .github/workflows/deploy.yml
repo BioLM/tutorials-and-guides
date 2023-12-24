@@ -34,6 +34,8 @@ jobs:
           echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > dist/build/lab/settings/overrides.json
           echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > dist/lab/settings/overrides.json
           jupyter lite build --contents content --output-dir dist
+          mkdir -p dist/build/lab/settings
+          mkdir -p dist/lab/settings
           echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > dist/build/lab/settings/overrides.json
           echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > dist/lab/settings/overrides.json
           find dist -type d -iname lab\*
