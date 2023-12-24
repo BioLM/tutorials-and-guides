@@ -41,6 +41,8 @@ jobs:
           find dist -type d -iname lab\*
           find /home/runner/work/tutorials-and-guides/ -type d -iname lab
           find dist -type f -iname *.css
+          cp dist/build/themes/@timkpaine/jupyterlab_miami_nights/index.css dist/build/themes/@jupyterlab/theme-light-extension/index.css
+          cp dist/build/themes/@timkpaine/jupyterlab_miami_nights/index.css dist/build/themes/@jupyterlab/theme-dark-extension/index.css
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
