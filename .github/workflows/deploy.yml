@@ -24,8 +24,8 @@ jobs:
       - name: Build the JupyterLite site
         run: |
           cp README.md content
+          jupyter labextension install kuzen/jupyterlab-atom-one-light
           jupyter lite build --contents content --output-dir dist
-          cp css/custom.css dist/build/themes/@jupyterlab/theme-light-extension/index.css
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
