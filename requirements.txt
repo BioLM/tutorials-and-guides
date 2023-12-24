@@ -21,6 +21,7 @@ jupyterlab-night
 jupyterlab_miami_nights
 jupyterthemes
 jupyterlab_white_theme
+ jupyterlab-theme-minimalist
 
 # Python: ipywidget library for Jupyter notebooks (optional)
 ipywidgets>=8.1.1,<9
