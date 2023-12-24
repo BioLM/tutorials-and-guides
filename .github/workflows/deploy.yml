@@ -25,7 +25,7 @@ jobs:
         run: |
           cp README.md content
           jupyter lite build --contents content --output-dir dist
-          cp css/custom_bkp.css dist/build/themes/@jupyterlab/theme-light-extension/index.css
+          cp css/custom.css dist/build/themes/@jupyterlab/theme-light-extension/index.css
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
