@@ -32,6 +32,9 @@ ipycanvas>=0.9.1
 # Python: ipyleaflet library for Jupyter notebooks (optional)
 ipyleaflet
 
+# Collapsible headings
+aquirdturtle_collapsible_headings
+
 # Python: plotting libraries (optional)
 plotly>=5,<6
 bqplot
