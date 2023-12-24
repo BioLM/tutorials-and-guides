@@ -38,6 +38,7 @@ jobs:
           echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' > dist/lab/settings/overrides.json
           find dist -type d -iname lab\*
           find /home/runner/work/tutorials-and-guides/ -type d -iname lab
+          find dist -type f -iname *.css
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
