@@ -1,0 +1,320 @@
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<div class="jupyter-biolm-header">
+    <img style="float: left; padding-right: 10px; height: 60px" src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/logo.png">
+    <p>
+    <br>
+    <br>
+    <br>
+    </p>
+</div>
+<h1 id="GPT2-for-Directed-or-Undirected-Antibody-Generation"><strong>GPT2 for Directed or Undirected Antibody Generation</strong><a class="anchor-link" href="#GPT2-for-Directed-or-Undirected-Antibody-Generation">&#182;</a></h1><p>GPT models are fantastic for Q&amp;A in English language, but for protein engineering the currently necessitate finetuning for decent molecule generation. For this example, we finetuned a ProtGPT2 model (pretrained on UniRef) on hundreds of thousands of SARS-Cov-19 natural antibodies from the OAS database. Below, we simply prompt our GPT2 model to generated a new molecule, not with a question but a either open-ended generation or by including <code>EVQL</code> to more assuredly generated a human heavy chain antibody.</p>
+<hr />
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Set-Your-API-Token"><strong>Set Your API Token</strong><a class="anchor-link" href="#Set-Your-API-Token">&#182;</a></h2><p>In order to use the BioLM API, you need to have a token. You can get one from
+the <a href="https://biolm.ai/ui/accounts/user-api-tokens/">User API Tokens</a> page.</p>
+<p>Paste the API token you generated in the cell below, as the value
+of the variable <code>BIOLMAI_TOKEN</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">BIOLMAI_TOKEN</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>  <span class="c1"># !!! YOUR API TOKEN HERE !!!</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="API-Call-with-Python-Requests">API Call with Python Requests<a class="anchor-link" href="#API-Call-with-Python-Requests">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We need to make sure we have the Python <code>requests</code> module loaded first.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Install packages to make API requests in JLite</span>
+    <span class="kn">import</span> <span class="nn">micropip</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;pyodide-http&#39;</span><span class="p">)</span>
+    <span class="c1"># Patch requests for in-browser support</span>
+    <span class="kn">import</span> <span class="nn">pyodide_http</span>
+    <span class="n">pyodide_http</span><span class="o">.</span><span class="n">patch_all</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">pass</span>  <span class="c1"># Won&#39;t be using micropip outside of JLite</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">JSON</span>  <span class="c1"># Helpful UI for JSON display</span>
+
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">urllib3</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">generate_gpt2_cv2_hchain</span><span class="p">(</span><span class="n">seed_seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;POST create a new GPT2 antibody from fine-tuned SARS-Cov2 immune responses.&quot;&quot;&quot;</span>
+
+
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://biolm.ai/api/v1/models/gpt2_sarscovd_heavy/generate/&quot;</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">seed_seq</span><span class="p">:</span>
+        <span class="n">seed_seq</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
+      <span class="s2">&quot;instances&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">seed_seq</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">})</span>
+    
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Token </span><span class="si">{</span><span class="n">BIOLMAI_TOKEN</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">480</span><span class="p">)</span>
+    
+    <span class="n">resp_json</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">resp_json</span><span class="p">[</span><span class="s1">&#39;predictions&#39;</span><span class="p">][</span><span class="s1">&#39;generated&#39;</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">resp</span> <span class="o">=</span> <span class="n">generate_gpt2_cv2_hchain</span><span class="p">(</span><span class="s1">&#39;EVQ&#39;</span><span class="p">)</span>
+
+<span class="n">resp</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="s1">&#39;EVQ&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">)],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;seed_seq&#39;</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">apply_gen_abs</span><span class="p">(</span><span class="n">seed_seq</span><span class="p">):</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">generate_gpt2_cv2_hchain</span><span class="p">(</span><span class="n">seed_seq</span><span class="p">)</span>
+    <span class="n">_d</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+    <span class="n">_d</span> <span class="o">=</span> <span class="n">_d</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;perplexity &lt;= 125.0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_d</span> <span class="o">=</span> <span class="n">_d</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">_d</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">len</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">256</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_d</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">generated_seq_dfs</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">seed_seq</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">2500</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">apply_gen_abs</span><span class="p">)</span>  <span class="c1"># use parallel_apply and pandarralel for parallel requests</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">generated_seqs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">generated_seq_dfs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">generated_seqs</span><span class="p">[</span><span class="s1">&#39;len&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generated_seqs</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">generated_seqs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;perplexity&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">generated_seqs</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">generated_seqs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;generated_sars_cov2_ab_seqs.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">generated_seqs</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The <code>perplexity</code> measure is correlated with similarity to known molecules - the lower the values, the more likely the sequence folds into something real. There are ~9.5k sequences with a <code>perplexity &lt;= 125.0</code>, to be further ranked and selected using <em>other</em> models now.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Rank-with-ESM-1v-&amp;-Other-Evaluations">Rank with ESM-1v &amp; Other Evaluations<a class="anchor-link" href="#Rank-with-ESM-1v-&amp;-Other-Evaluations">&#182;</a></h2><p>In order to pull out likely functional sequences, we could also score these with ESM-1v - or any ESM flavor - since those models were trained on functional sequences only. See <a href="./3.1_ESM-1v_Deep_Mutational_Scan_Protein.ipynb">In silico Deep Mutational Scan</a> for more info.</p>
+<p>We could also see how close the low-perplexity generated sequences are to those in the test set. Align or calculate Levenshtein distances from antibodies in the test set. Number the antibodies so we can assess their CDR loops comapred to known SARS-Cov-2 antibodies. And of course many other evaluations we could make, which will be up to you.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">See more use-cases and APIs on your <a href="https://biolm.ai/console/catalog/">BioLM Console Catalog</a>.<a class="anchor-link" href="#See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">&#182;</a></h3><br>
+<h4 id="BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">BioLM hosts deep learning models and runs inference at scale. You do the science.<a class="anchor-link" href="#BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">&#182;</a></h4><br>
+<table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/enzyme_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Enzyme Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/antibody_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Antibody Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/biosecurity_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Biosecurity
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/single_cell_genomics_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Single-Cell Genomics
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/dna_seq_modeling_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> DNA Sequence Modelling
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/finetuning_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Finetuning
+        </td>
+    </tr>
+</table>
+<h3 id="Contact-us-to-learn-more."><a href="https://biolm.ai/ui/contact-us/"><strong>Contact us</strong></a> to learn more.<a class="anchor-link" href="#Contact-us-to-learn-more.">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+
+

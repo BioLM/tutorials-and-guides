@@ -1,0 +1,290 @@
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<div class="jupyter-biolm-header">
+    <img style="float: left; padding-right: 10px; height: 60px" src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/logo.png">
+    <p>
+    <br>
+    <br>
+    <br>
+    </p>
+</div>
+<h1 id="ESM-1v-API"><strong>ESM-1v API</strong><a class="anchor-link" href="#ESM-1v-API">&#182;</a></h1><p>Language model specialized for prediction of variant effects. Enables SOTA zero-shot prediction of the functional effects of sequence variations.<sup>*</sup></p>
+<br>
+<table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://www.svgrepo.com/show/354202/postman-icon.svg" style="height: 20px; float: left; padding-right: 10px;"><a href="https://api.biolm.ai/#67f77d96-c4d8-4a1f-953a-d26330c27315">  <h4 style="margin: 0;"><b>Postman API Docs</b></h4></a>
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" style="height: 20px; float: left; padding-right: 10px;"><a href="https://docs.biolm.ai/en/latest/model-docs/esm1v/ESM-1v_API.html"><h4 style="margin: 0;"><b>Python SDK Docs</b></h4></a>
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" style="height: 20px; float: left; padding-right: 10px;"><a href="https://github.com/facebookresearch/esm"><h4 style="margin: 0;"><b><sup>*</sup>Github Link</b></h4></a>
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://info.arxiv.org/brand/images/brand-logomark-primary-large.jpg" style="height: 20px; float: left; padding-right: 10px;"><a href="https://www.biorxiv.org/content/10.1101/2021.07.09.450648v2.full.pdf"><h4 style="margin: 0;"><b>Paper Link</b></h4></a>
+        </td>
+    </tr>
+</table>
+<br>
+<hr />
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Set-Your-API-Token"><strong>Set Your API Token</strong><a class="anchor-link" href="#Set-Your-API-Token">&#182;</a></h2><p>In order to use the BioLM API, you need to have a token. You can get one from
+the <a href="https://biolm.ai/ui/accounts/user-api-tokens/">User API Tokens</a> page.</p>
+<p>Paste the API token you generated in the cell below, as the value
+of the variable <code>BIOLMAI_TOKEN</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">BIOLMAI_TOKEN</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>  <span class="c1"># !!! YOUR API TOKEN HERE !!!</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="API-Call-with-Python-requests">API Call with Python requests<a class="anchor-link" href="#API-Call-with-Python-requests">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Install packages to make API requests in JLite</span>
+    <span class="kn">import</span> <span class="nn">micropip</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;pyodide-http&#39;</span><span class="p">)</span>
+    <span class="c1"># Patch requests for in-browser support</span>
+    <span class="kn">import</span> <span class="nn">pyodide_http</span>
+    <span class="n">pyodide_http</span><span class="o">.</span><span class="n">patch_all</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">pass</span>  <span class="c1"># Won&#39;t be using micropip outside of JLite</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>  <span class="c1"># Will use to make calls to BioLM.ai</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">JSON</span>  <span class="c1"># Helpful UI for JSON display</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Construct the API endpoint to use. See https://api.biolm.ai</span>
+<span class="n">SLUG</span> <span class="o">=</span> <span class="s1">&#39;esm1v-n3&#39;</span>
+<span class="n">ACTION</span> <span class="o">=</span> <span class="s1">&#39;predict&#39;</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://biolm.ai/api/v2/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ACTION</span><span class="si">}</span><span class="s2">/&quot;</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Token </span><span class="si">{</span><span class="n">BIOLMAI_TOKEN</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;QERLEUTGR&lt;mask&gt;SLYNIVAT&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Make the request!</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="n">result</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[6]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>{&#39;results&#39;: [[{&#39;token&#39;: 4,
+    &#39;token_str&#39;: &#39;L&#39;,
+    &#39;score&#39;: 0.09340453892946243,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R L S L Y N I V A T&#39;},
+   {&#39;token&#39;: 8,
+    &#39;token_str&#39;: &#39;S&#39;,
+    &#39;score&#39;: 0.07898478955030441,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R S S L Y N I V A T&#39;},
+   {&#39;token&#39;: 7,
+    &#39;token_str&#39;: &#39;V&#39;,
+    &#39;score&#39;: 0.07508690655231476,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R V S L Y N I V A T&#39;},
+   {&#39;token&#39;: 12,
+    &#39;token_str&#39;: &#39;I&#39;,
+    &#39;score&#39;: 0.07162979990243912,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R I S L Y N I V A T&#39;},
+   {&#39;token&#39;: 10,
+    &#39;token_str&#39;: &#39;R&#39;,
+    &#39;score&#39;: 0.06852644681930542,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R R S L Y N I V A T&#39;},
+   {&#39;token&#39;: 6,
+    &#39;token_str&#39;: &#39;G&#39;,
+    &#39;score&#39;: 0.06607537716627121,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R G S L Y N I V A T&#39;},
+   {&#39;token&#39;: 15,
+    &#39;token_str&#39;: &#39;K&#39;,
+    &#39;score&#39;: 0.06140719726681709,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R K S L Y N I V A T&#39;},
+   {&#39;token&#39;: 5,
+    &#39;token_str&#39;: &#39;A&#39;,
+    &#39;score&#39;: 0.055858004838228226,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R A S L Y N I V A T&#39;},
+   {&#39;token&#39;: 11,
+    &#39;token_str&#39;: &#39;T&#39;,
+    &#39;score&#39;: 0.05352523550391197,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R T S L Y N I V A T&#39;},
+   {&#39;token&#39;: 9,
+    &#39;token_str&#39;: &#39;E&#39;,
+    &#39;score&#39;: 0.05168083310127258,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R E S L Y N I V A T&#39;},
+   {&#39;token&#39;: 18,
+    &#39;token_str&#39;: &#39;F&#39;,
+    &#39;score&#39;: 0.04500032216310501,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R F S L Y N I V A T&#39;},
+   {&#39;token&#39;: 17,
+    &#39;token_str&#39;: &#39;N&#39;,
+    &#39;score&#39;: 0.04389749467372894,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R N S L Y N I V A T&#39;},
+   {&#39;token&#39;: 14,
+    &#39;token_str&#39;: &#39;P&#39;,
+    &#39;score&#39;: 0.04316297918558121,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R P S L Y N I V A T&#39;},
+   {&#39;token&#39;: 13,
+    &#39;token_str&#39;: &#39;D&#39;,
+    &#39;score&#39;: 0.04274963587522507,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R D S L Y N I V A T&#39;},
+   {&#39;token&#39;: 16,
+    &#39;token_str&#39;: &#39;Q&#39;,
+    &#39;score&#39;: 0.03726824373006821,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R Q S L Y N I V A T&#39;},
+   {&#39;token&#39;: 19,
+    &#39;token_str&#39;: &#39;Y&#39;,
+    &#39;score&#39;: 0.03164747357368469,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R Y S L Y N I V A T&#39;},
+   {&#39;token&#39;: 21,
+    &#39;token_str&#39;: &#39;H&#39;,
+    &#39;score&#39;: 0.02442392334342003,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R H S L Y N I V A T&#39;},
+   {&#39;token&#39;: 23,
+    &#39;token_str&#39;: &#39;C&#39;,
+    &#39;score&#39;: 0.020940976217389107,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R C S L Y N I V A T&#39;},
+   {&#39;token&#39;: 20,
+    &#39;token_str&#39;: &#39;M&#39;,
+    &#39;score&#39;: 0.02027340792119503,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R M S L Y N I V A T&#39;},
+   {&#39;token&#39;: 22,
+    &#39;token_str&#39;: &#39;W&#39;,
+    &#39;score&#39;: 0.013751133345067501,
+    &#39;sequence&#39;: &#39;Q E R L E U T G R W S L Y N I V A T&#39;}]]}</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">See more use-cases and APIs on your <a href="https://biolm.ai/console/catalog/">BioLM Console Catalog</a>.<a class="anchor-link" href="#See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">&#182;</a></h3><br>
+<h4 id="BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">BioLM hosts deep learning models and runs inference at scale. You do the science.<a class="anchor-link" href="#BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">&#182;</a></h4><br>
+<table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/enzyme_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Enzyme Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/antibody_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Antibody Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/biosecurity_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Biosecurity
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/single_cell_genomics_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Single-Cell Genomics
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/dna_seq_modeling_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> DNA Sequence Modelling
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/finetuning_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Finetuning
+        </td>
+    </tr>
+</table>
+<h3 id="Contact-us-to-learn-more."><a href="https://biolm.ai/ui/contact-us/"><strong>Contact us</strong></a> to learn more.<a class="anchor-link" href="#Contact-us-to-learn-more.">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+
+

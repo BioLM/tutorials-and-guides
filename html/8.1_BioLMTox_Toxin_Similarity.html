@@ -1,0 +1,423 @@
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<div class="jupyter-biolm-header">
+    <img style="float: left; padding-right: 10px; height: 60px" src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/logo.png">
+    <p>
+    <br>
+    <br>
+    <br>
+    </p>
+</div>
+<h1 id="BioLMTox-Toxin-Similarity"><strong>BioLMTox Toxin Similarity</strong><a class="anchor-link" href="#BioLMTox-Toxin-Similarity">&#182;</a></h1><p>Enhance biosecurity with our BioLMTox <a href="https://api.biolm.ai/#723bb851-3fa0-40fa-b4eb-f56b16d954f5">embeddings endpoint</a>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Set-Your-API-Token"><strong>Set Your API Token</strong><a class="anchor-link" href="#Set-Your-API-Token">&#182;</a></h2><p>In order to use the BioLM API, you need to have a token. You can get one from
+the <a href="https://biolm.ai/ui/accounts/user-api-tokens/">User API Tokens</a> page.</p>
+<p>Paste the API token you generated in the cell below, as the value
+of the variable <code>BIOLMAI_TOKEN</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">BIOLMAI_TOKEN</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>  <span class="c1"># !!! YOUR API TOKEN HERE !!!</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Make-API-Request">Make API Request<a class="anchor-link" href="#Make-API-Request">&#182;</a></h2><p>There is already a server on BioLM with ESMFold loaded into memory, so predictions should be fast. Let's import the <code>requests</code> library.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">JSON</span>  <span class="c1"># Helpful UI for JSON display</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Install packages to make API requests in JLite</span>
+    <span class="kn">import</span> <span class="nn">micropip</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;pyodide-http&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span>
+    <span class="c1"># Patch requests for in-browser support</span>
+    <span class="kn">import</span> <span class="nn">pyodide_http</span>
+    <span class="n">pyodide_http</span><span class="o">.</span><span class="n">patch_all</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">pass</span>  <span class="c1"># Won&#39;t be using micropip outside of JLite</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>  <span class="c1"># Will use to make calls to BioLM.ai</span>
+<span class="kn">import</span> <span class="nn">csv</span>  <span class="c1"># To read example data</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">norm</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;data/protein/data/PLA2.csv&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>[[&#39;label&#39;, &#39;sequence&#39;], [&#39;toxin&#39;, &#39;MHPAHLLVLLAVCVSLLGASDIPPLPLNLAQFGFMIRCANGGSRSPLDYTDYGCYCGKGGRGTPVDDLDRCCQVHDECYGEAEKRLGCSPFVTLYSWKCYGKAPSCNTKTDCQRFVCNCDAKAAECFARSPYQKKNWNINTKARCK&#39;], [&#39;toxin&#39;, &#39;MRTLWIMAVLLVGVEGSLVELGKMILQETGKNPVTSYGAYGCNCGVLGRGKPKDATDRCCYVHKCCYKKLTDCNPKKDRYSYSWKDKTIVCGENNSCLKELCECDKAVAICLRENLDTYNKKYKNNYLKPFCKKADPC&#39;]]
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Load the example toxin sequences from the CSV file</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">SEQ1</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">SEQ2</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sequence length 1: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">SEQ1</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sequence length 2: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">SEQ2</span><span class="p">)))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Sequence length 1: 146
+Sequence length 2: 138
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>SEQ1 is <a href="https://www.uniprot.org/uniprotkb/Q45Z47/entry">https://www.uniprot.org/uniprotkb/Q45Z47/entry</a> and SEQ2 is <a href="https://www.uniprot.org/uniprotkb/P82114/entry">https://www.uniprot.org/uniprotkb/P82114/entry</a>. Both are snake venoms.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Define-Endpoint-Params">Define Endpoint Params<a class="anchor-link" href="#Define-Endpoint-Params">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s2">&quot;biolmtox_v1&quot;</span>  <span class="c1"># Model endpoint to hit on BioLM.ai</span>
+<span class="n">ACTION</span> <span class="o">=</span> <span class="s2">&quot;transform&quot;</span>
+<span class="c1"># Follow the link to the docs for the endpoint above to see this definition</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;instances&quot;</span><span class="p">:</span> <span class="p">[{</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">SEQ1</span><span class="p">}</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">SEQ2</span><span class="p">}</span>
+  <span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://biolm.ai/api/v1/models/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ACTION</span><span class="si">}</span><span class="s2">/&quot;</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Token </span><span class="si">{</span><span class="n">BIOLMAI_TOKEN</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Let's make a secure REST API request to BioLM API to quickly make the prediction on GPU.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Make the request - let&#39;s time it!</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># Start time</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">e</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># End time</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">e</span> <span class="o">-</span> <span class="n">s</span>  <span class="c1"># Duration</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Response time: </span><span class="si">{</span><span class="n">d</span><span class="si">:</span><span class="s1">.4</span><span class="si">}</span><span class="s1">s&#39;</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+<span class="c1"># If you wish to view the full result, you can expand the tree in the cell below</span>
+<span class="n">JSON</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Response time: 0.298s
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[8]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&lt;IPython.core.display.JSON object&gt;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The response is a list of embedding vectors, one vector of static length 640 for each input instance</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Define similarity measure</span>
+<span class="k">def</span> <span class="nf">cos_similarity</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">norm</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># convert sequence embeddings to numpy arrays</span>
+<span class="n">em_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">em_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># compute similarity measures</span>
+<span class="n">em_similarity</span> <span class="o">=</span> <span class="n">cos_similarity</span><span class="p">(</span><span class="n">em_1</span><span class="p">,</span> <span class="n">em_2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sequence embedding cosine similarity:</span><span class="se">\n</span><span class="si">{</span><span class="n">em_similarity</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>sequence embedding cosine similarity:
+0.952454195675824
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The cosine similarity between the two toxin sequences is quite high, as expected, since one sequence is <em>Phospholipase A2 OS2</em> and the other is <em>Basic phospholipase A2 homolog MjTX-I</em>. Both are related to Phospholipases and are snake venoms.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">See more use-cases and APIs on your <a href="https://biolm.ai/console/catalog/">BioLM Console Catalog</a>.<a class="anchor-link" href="#See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">&#182;</a></h3><br>
+<h4 id="BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">BioLM hosts deep learning models and runs inference at scale. You do the science.<a class="anchor-link" href="#BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">&#182;</a></h4><br>
+<table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/enzyme_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Enzyme Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/antibody_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Antibody Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/biosecurity_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Biosecurity
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/single_cell_genomics_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Single-Cell Genomics
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/dna_seq_modeling_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> DNA Sequence Modelling
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/finetuning_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Finetuning
+        </td>
+    </tr>
+</table>
+<h3 id="Contact-us-to-learn-more."><a href="https://biolm.ai/ui/contact-us/"><strong>Contact us</strong></a> to learn more.<a class="anchor-link" href="#Contact-us-to-learn-more.">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+
+

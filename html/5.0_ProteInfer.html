@@ -1,0 +1,372 @@
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<div class="jupyter-biolm-header">
+    <img style="float: left; padding-right: 10px; height: 60px" src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/logo.png">
+    <p>
+    <br>
+    <br>
+    <br>
+    </p>
+</div>
+<h1 id="ProteInfer-API"><strong>ProteInfer API</strong><a class="anchor-link" href="#ProteInfer-API">&#182;</a></h1><p>ProteInfer uses convolutional neural networks for direct prediction of protein functions from amino acid sequences. It specializes in identifying Enzyme Commission numbers and Gene Ontology terms, enhancing protein functional annotation.</p>
+<br>
+<table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://www.svgrepo.com/show/354202/postman-icon.svg" style="height: 20px; float: left; padding-right: 10px;"><a href="https://api.biolm.ai/#9bcdd520-f163-4624-bd55-ff73103526a5">  <h4 style="margin: 0;"><b>Postman API Docs</b></h4></a>
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" style="height: 20px; float: left; padding-right: 10px;"><a href="https://docs.biolm.ai/en/latest/model-docs/proteinfer/ProteInfer_API.html"><h4 style="margin: 0;"><b>Python SDK Docs</b></h4></a>
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" style="height: 20px; float: left; padding-right: 10px;"><a href="https://github.com/google-research/proteinfer"><h4 style="margin: 0;"><b>Github Link</b></h4></a>
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://info.arxiv.org/brand/images/brand-logomark-primary-large.jpg" style="height: 20px; float: left; padding-right: 10px;"><a href="https://google-research.github.io/proteinfer/"><h4 style="margin: 0;"><b>Paper Link</b></h4></a>
+        </td>
+    </tr>
+</table>
+<br>
+<hr />
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Set-Your-API-Token"><strong>Set Your API Token</strong><a class="anchor-link" href="#Set-Your-API-Token">&#182;</a></h2><p>In order to use the BioLM API, you need to have a token. You can get one from
+the <a href="https://biolm.ai/ui/accounts/user-api-tokens/">User API Tokens</a> page.</p>
+<p>Paste the API token you generated in the cell below, as the value
+of the variable <code>BIOLMAI_TOKEN</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">BIOLMAI_TOKEN</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>  <span class="c1"># !!! YOUR API TOKEN HERE !!!</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="API-Call-with-Python-requests">API Call with Python requests<a class="anchor-link" href="#API-Call-with-Python-requests">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We need to make sure we have the requisite package first, mainly Python <code>requests</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Install packages to make API requests in JLite</span>
+    <span class="kn">import</span> <span class="nn">micropip</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">micropip</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="s1">&#39;pyodide-http&#39;</span><span class="p">)</span>
+    <span class="c1"># Patch requests for in-browser support</span>
+    <span class="kn">import</span> <span class="nn">pyodide_http</span>
+    <span class="n">pyodide_http</span><span class="o">.</span><span class="n">patch_all</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">pass</span>  <span class="c1"># Won&#39;t be using micropip outside of JLite</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">JSON</span>  <span class="c1"># Helpful UI for JSON display</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="ProteInfer-EC-(Enzyme-Commission)-Prediction">ProteInfer EC (Enzyme Commission) Prediction<a class="anchor-link" href="#ProteInfer-EC-(Enzyme-Commission)-Prediction">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s1">&#39;proteinfer-ec&#39;</span>
+<span class="n">ACTION</span> <span class="o">=</span> <span class="s1">&#39;predict&#39;</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://biolm.ai/api/v2/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ACTION</span><span class="si">}</span><span class="s2">/&quot;</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Token </span><span class="si">{</span><span class="n">BIOLMAI_TOKEN</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;MMQTVLAKIVADKAIWVEARKQQQPLASFQNEVQPSTRHFYDALQGARTAFILECKKASPSKGVIRDDFDPARIAAIYKHYASAISVLTDEKYFQGSFNFLPIVSQIAPQPILCKDFIIDPYQIYLARYYQADACLLMLSVLDDDQYRQLAAVAHSLEMGVLTEVSNEEEQERAIALGAKVVGINNRDLRDLSIDLNRTRELAPKLGHNVTVISESGINTYAQVRELSHFANGFLIGSALMAHDDLHAAVRRVLLGENKVCGLTRGQDAKAAYDAGAIYGGLIFVATSPRCVNVEQAQEVMAAAPLQYVGVFRNHDIADVVDKAKVLSLAAVQLHGNEEQLYIDTLREALPAHVAIWKALSVGETLPAREFQHVDKYVLDNGQGGSGQRFDWSLLNGQSLGNVLLAGGLGADNCVEAAQTGCAGLDFNSAVESQPGIKDARLLASVFQTLRAY&quot;</span><span class="p">,</span>
+
+        <span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Make the request</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="n">result</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[7]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>{&#39;results&#39;: [{&#39;sequence_id&#39;: &#39;0&#39;,
+   &#39;predictions&#39;: [{&#39;label&#39;: &#39;EC:4.-.-.-&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Lyases.&#39;},
+    {&#39;label&#39;: &#39;EC:4.1.-.-&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Carbon-carbon lyases.&#39;},
+    {&#39;label&#39;: &#39;EC:4.1.1.-&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Carboxy-lyases.&#39;},
+    {&#39;label&#39;: &#39;EC:4.1.1.48&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Indole-3-glycerol-phosphate synthase.&#39;},
+    {&#39;label&#39;: &#39;EC:5.-.-.-&#39;, &#39;confidence&#39;: 1.0, &#39;description&#39;: &#39;Isomerases.&#39;},
+    {&#39;label&#39;: &#39;EC:5.3.-.-&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Intramolecular oxidoreductases.&#39;},
+    {&#39;label&#39;: &#39;EC:5.3.1.-&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Interconverting aldoses and ketoses.&#39;},
+    {&#39;label&#39;: &#39;EC:5.3.1.24&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;Phosphoribosylanthranilate isomerase.&#39;}]}]}</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="ProteInfer-GO-(Gene-Ontology)-Prediction">ProteInfer GO (Gene Ontology) Prediction<a class="anchor-link" href="#ProteInfer-GO-(Gene-Ontology)-Prediction">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">SLUG</span> <span class="o">=</span> <span class="s1">&#39;proteinfer-go&#39;</span>
+<span class="n">ACTION</span> <span class="o">=</span> <span class="s1">&#39;predict&#39;</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://biolm.ai/api/v2/</span><span class="si">{</span><span class="n">SLUG</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ACTION</span><span class="si">}</span><span class="s2">/&quot;</span>
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Token </span><span class="si">{</span><span class="n">BIOLMAI_TOKEN</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;MSQCCCRQVLLGVEVSIVVMALVAGGAGQTHDSRAAGSSCYGGFDLYFVLDKSGSVQHYWNEIFYFVHHLAHKFISPQMRMSFIVFSTDGRTLMALTEDRDKIRAGLEELRMVQPGGDTYMDRGLHRASEQIYYAAGDGYRAASVIIALTDGELREDQFDTAQREAGRARQLGASVYCVGLKDFNETQLSTIADSKDHVFPVHDGFEALQSVIDSILKRSCIEILAVQPSSICEGGEDEEQRHPESFQVVVKGNGFLHARDVQKVLCSFRVNDTLTLMKRPLVVRDTYLLCPAPLLEREGTSATLHVSMNNGLSFISSSVTIEAVACSDGTFVAVALLILMLLLTLVLLWWFWPLCCTVVRPPSWISVRKTPVKPPPSFEVWSSFPLFCLQVVHEPPPPVAEDDSDDEEGLPKKKWPTVDASYYGGRGVGGIKRMEVRWGDKGSTEEGAKLEKAKNARVVMPTEEESLARPYHAAHKPVRSHKWYSPIKGKLDALCVFLRKGYDRVSIMRPLPGDKGKCINFTRSRSYPVTRYPVYRPPPTPIYTLPHGHQRRPSDDSNLFQLPPSPTSKLPPLPSLHPSSCATLPVYSRHPDLFSAPPSPTGSLPPPPQAPPLCRAPPPSRPPPRPN&quot;</span><span class="p">,</span>
+
+        <span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Make the request</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="n">result</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[4]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>{&#39;results&#39;: [{&#39;sequence_id&#39;: &#39;0&#39;,
+   &#39;predictions&#39;: [{&#39;label&#39;: &#39;GO:0005488&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;binding&#39;},
+    {&#39;label&#39;: &#39;GO:0008150&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;biological_process&#39;},
+    {&#39;label&#39;: &#39;GO:0044464&#39;, &#39;confidence&#39;: 1.0, &#39;description&#39;: &#39;cell part&#39;},
+    {&#39;label&#39;: &#39;GO:0005575&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;cellular_component&#39;},
+    {&#39;label&#39;: &#39;GO:0016021&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;integral component of membrane&#39;},
+    {&#39;label&#39;: &#39;GO:0031224&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;intrinsic component of membrane&#39;},
+    {&#39;label&#39;: &#39;GO:0044425&#39;, &#39;confidence&#39;: 1.0, &#39;description&#39;: &#39;membrane part&#39;},
+    {&#39;label&#39;: &#39;GO:0003674&#39;,
+     &#39;confidence&#39;: 1.0,
+     &#39;description&#39;: &#39;molecular_function&#39;},
+    {&#39;label&#39;: &#39;GO:0065007&#39;,
+     &#39;confidence&#39;: 0.9999992847442627,
+     &#39;description&#39;: &#39;biological regulation&#39;},
+    {&#39;label&#39;: &#39;GO:0046872&#39;,
+     &#39;confidence&#39;: 0.9999992847442627,
+     &#39;description&#39;: &#39;metal ion binding&#39;},
+    {&#39;label&#39;: &#39;GO:0043169&#39;,
+     &#39;confidence&#39;: 0.9999990463256836,
+     &#39;description&#39;: &#39;cation binding&#39;},
+    {&#39;label&#39;: &#39;GO:0016020&#39;,
+     &#39;confidence&#39;: 0.9999864101409912,
+     &#39;description&#39;: &#39;membrane&#39;},
+    {&#39;label&#39;: &#39;GO:0007165&#39;,
+     &#39;confidence&#39;: 0.9999784231185913,
+     &#39;description&#39;: &#39;signal transduction&#39;},
+    {&#39;label&#39;: &#39;GO:0043167&#39;,
+     &#39;confidence&#39;: 0.9999719858169556,
+     &#39;description&#39;: &#39;ion binding&#39;},
+    {&#39;label&#39;: &#39;GO:1901998&#39;,
+     &#39;confidence&#39;: 0.9998838901519775,
+     &#39;description&#39;: &#39;toxin transport&#39;},
+    {&#39;label&#39;: &#39;GO:0060089&#39;,
+     &#39;confidence&#39;: 0.9997674822807312,
+     &#39;description&#39;: &#39;molecular transducer activity&#39;},
+    {&#39;label&#39;: &#39;GO:0038023&#39;,
+     &#39;confidence&#39;: 0.9996358156204224,
+     &#39;description&#39;: &#39;signaling receptor activity&#39;},
+    {&#39;label&#39;: &#39;GO:0004888&#39;,
+     &#39;confidence&#39;: 0.9989659786224365,
+     &#39;description&#39;: &#39;transmembrane signaling receptor activity&#39;},
+    {&#39;label&#39;: &#39;GO:0050789&#39;,
+     &#39;confidence&#39;: 0.9988377690315247,
+     &#39;description&#39;: &#39;regulation of biological process&#39;},
+    {&#39;label&#39;: &#39;GO:0004896&#39;,
+     &#39;confidence&#39;: 0.9984742999076843,
+     &#39;description&#39;: &#39;cytokine receptor activity&#39;}]}]}</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">See more use-cases and APIs on your <a href="https://biolm.ai/console/catalog/">BioLM Console Catalog</a>.<a class="anchor-link" href="#See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">&#182;</a></h3><br>
+<h4 id="BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">BioLM hosts deep learning models and runs inference at scale. You do the science.<a class="anchor-link" href="#BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">&#182;</a></h4><br>
+<table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/enzyme_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Enzyme Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/antibody_engineering_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Antibody Engineering
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/biosecurity_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Biosecurity
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/single_cell_genomics_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Single-Cell Genomics
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/dna_seq_modeling_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> DNA Sequence Modelling
+        </td>
+        <td style="text-align: left; vertical-align: middle; background-color: white;">
+            <img src="https://d31e6ufxekikrt.cloudfront.net/static/ui/images/console-overview/finetuning_icon.png"  style="height: 40px; float: left; padding-right: 10px;"> Finetuning
+        </td>
+    </tr>
+</table>
+<h3 id="Contact-us-to-learn-more."><a href="https://biolm.ai/ui/contact-us/"><strong>Contact us</strong></a> to learn more.<a class="anchor-link" href="#Contact-us-to-learn-more.">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+
+
