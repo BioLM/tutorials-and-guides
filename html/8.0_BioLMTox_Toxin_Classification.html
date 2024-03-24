@@ -9,15 +9,15 @@
     <br>
     </p>
 </div>
-<h1 id="BioLMTox-API"><strong>BioLMTox API</strong><a class="anchor-link" href="#BioLMTox-API">&#182;</a></h1><p>Enhance BioSecurity with the BioLMTox <a href="https://api.biolm.ai/#8616fff6-33c4-416b-9557-429da180ef92">classification endpoint</a></p>
+<h1 id="BioLMTox-API">BioLMTox API<a class="anchor-link" href="#BioLMTox-API">&#182;</a></h1><p>Enhance biosecurity with the BioLMTox <a href="https://api.biolm.ai/#8616fff6-33c4-416b-9557-429da180ef92">classification endpoint</a>.</p>
 <br>
-<table style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
+<table  class="jupyter-biolm-header-table"  style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
     <tr>
         <td style="text-align: left; vertical-align: middle; background-color: white;">
-            <img src="https://www.svgrepo.com/show/354202/postman-icon.svg" style="height: 20px; float: left; padding-right: 10px;"><a href="https://api.biolm.ai/#8616fff6-33c4-416b-9557-429da180ef92">  <h4 style="margin: 0;"><b>Postman API Docs</b></h4></a>
+            <img src="https://www.svgrepo.com/show/354202/postman-icon.svg" style="height: 15px; float: left; padding-right: 10px;"><a href="https://api.biolm.ai/#8616fff6-33c4-416b-9557-429da180ef92">  <h5 style="margin: 0;"><b>Postman API Docs</b></h5></a>
         </td>
         <td style="text-align: left; vertical-align: middle; background-color: white;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" style="height: 20px; float: left; padding-right: 10px;"><a href="https://docs.biolm.ai/en/latest/model-docs/biolmtox/BioLMTox_API.html"><h4 style="margin: 0;"><b>Python SDK Docs</b></h4></a>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" style="height: 15px; float: left; padding-right: 10px;"><a href="https://docs.biolm.ai/en/latest/model-docs/biolmtox/BioLMTox_API.html"><h5 style="margin: 0;"><b>Python SDK Docs</b></h5></a>
         </td>
         <td style="text-align: left; vertical-align: middle; background-color: white;">
         </td>
@@ -34,7 +34,7 @@
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Set-Your-API-Token"><strong>Set Your API Token</strong><a class="anchor-link" href="#Set-Your-API-Token">&#182;</a></h2><p>In order to use the BioLM API, you need to have a token. You can get one from
+<h2 id="Set-Your-API-Token">Set Your API Token<a class="anchor-link" href="#Set-Your-API-Token">&#182;</a></h2><p>In order to use the BioLM API, you need to have a token. You can get one from
 the <a href="https://biolm.ai/ui/accounts/user-api-tokens/">User API Tokens</a> page.</p>
 <p>Paste the API token you generated in the cell below, as the value
 of the variable <code>BIOLMAI_TOKEN</code>.</p>
@@ -184,7 +184,7 @@ Sequence length 2: 138
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>SEQ1 is <a href="https://www.uniprot.org/uniprotkb/Q45Z47/entry">https://www.uniprot.org/uniprotkb/Q45Z47/entry</a> and SEQ2 is <a href="https://www.uniprot.org/uniprotkb/P82114/entry">https://www.uniprot.org/uniprotkb/P82114/entry</a>. Both are snake venoms.</p>
+<p>SEQ1 is <a href="https://www.uniprot.org/uniprotkb/Q45Z47/entry">https://www.uniprot.org/uniprotkb/Q45Z47/entry</a> and SEQ2 is <a href="https://www.uniprot.org/uniprotkb/P82114/entry">https://www.uniprot.org/uniprotkb/P82114/entry</a>. Both are snake venoms</p>
 
 </div>
 </div>
@@ -312,7 +312,7 @@ Sequence length 2: 138
 <li><code>label</code>, the predicted class label either 'toxin' or 'not toxin'</li>
 <li><code>score</code>, the model score for the outputed label, the closer to one the more confident the model is in its predction</li>
 </ul>
-<p>The label is toxin with a high score of <code>0.989</code> which matches the true label! This sequence is infact <em>Phospholipase A2 OS2</em>, a venom protein from the taipan snake.</p>
+<p>The label is toxin with a high score of <code>0.989</code> which matches the true label! This sequence is infact Phospholipase A2 OS2 a venom protein from the taipan snake.</p>
 
 </div>
 </div>
@@ -320,8 +320,11 @@ Sequence length 2: 138
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">See more use-cases and APIs on your <a href="https://biolm.ai/console/catalog/">BioLM Console Catalog</a>.<a class="anchor-link" href="#See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">&#182;</a></h3><br>
-<h4 id="BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">BioLM hosts deep learning models and runs inference at scale. You do the science.<a class="anchor-link" href="#BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">&#182;</a></h4><br>
+<h2 id="Next-Steps">Next Steps<a class="anchor-link" href="#Next-Steps">&#182;</a></h2><p>Check out additional tutorials at <a href="https://jupyter.biolm.ai">jupyter.biolm.ai</a>,
+or head over to our <a href="https://docs.biolm.ai">BioLM Documentation</a> to explore
+additional models and functionality.</p>
+<h4 id="See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">See more use-cases and APIs on your <a href="https://biolm.ai/console/catalog/">BioLM Console Catalog</a>.<a class="anchor-link" href="#See-more-use-cases-and-APIs-on-your-BioLM-Console-Catalog.">&#182;</a></h4><br>
+<h5 id="BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">BioLM hosts deep learning models and runs inference at scale. You do the science.<a class="anchor-link" href="#BioLM-hosts-deep-learning-models-and-runs-inference-at-scale.-You-do-the-science.">&#182;</a></h5><br>
 <table class="jupyter-biolm-header-table" style="width: 100%; border-collapse: collapse; background-color: white; float: left;">
     <tr>
         <td style="text-align: left; vertical-align: middle; background-color: white;">
@@ -346,7 +349,7 @@ Sequence length 2: 138
         </td>
     </tr>
 </table>
-<h3 id="Contact-us-to-learn-more."><a href="https://biolm.ai/ui/contact-us/"><strong>Contact us</strong></a> to learn more.<a class="anchor-link" href="#Contact-us-to-learn-more.">&#182;</a></h3>
+<h4 id="Contact-us-to-learn-more."><a href="https://biolm.ai/ui/contact-us/"><strong>Contact us</strong></a> to learn more.<a class="anchor-link" href="#Contact-us-to-learn-more.">&#182;</a></h4>
 </div>
 </div>
 </div>
