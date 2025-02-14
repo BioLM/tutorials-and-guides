@@ -322,7 +322,7 @@ SKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLSYGVQCFSRYPDHMKQH
     <span class="n">data_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
     <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;https://biolm.ai/api/v2/</span><span class="si">{</span><span class="n">model_slug</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;https://biolm.ai/api/v3/</span><span class="si">{</span><span class="n">model_slug</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
         <span class="n">data</span><span class="o">=</span><span class="n">data_str</span><span class="p">,</span>
         <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
