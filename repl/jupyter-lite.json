@@ -5,6 +5,7 @@
         "@jupyterlab/drawio-extension",
         "jupyterlab-kernel-spy",
         "jupyterlab-tour"
-      ]
+      ],
+      "exposeAppInBrowser": true
     }
   }
