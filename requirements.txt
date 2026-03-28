@@ -1,30 +1,28 @@
 # Core modules (mandatory)
-jupyterlite-core==0.1.3
-jupyterlab~=3.5.1
+jupyterlite-core==0.7.4
+jupyterlab~=4.5.6
+notebook~=7.5.5
+# Required for `jupyter lite build --contents` (contents indexing)
+jupyter-server>=2,<3
 
 # Python kernel (optional)
-jupyterlite-pyodide-kernel==0.1.3
+jupyterlite-pyodide-kernel==0.7.1
 
 # Language support (optional)
 jupyterlab-language-pack-fr-FR
 jupyterlab-language-pack-zh-CN
 
 # JupyterLab: Fasta file renderer (optional)
-jupyterlab-fasta>=3,<4
+jupyterlab-fasta>=3.3.0,<4
 # JupyterLab: Geojson file renderer (optional)
-jupyterlab-geojson>=3,<4
-# JupyterLab: guided tour (optional)
-jupyterlab-tour
+jupyterlab-geojson>=3.4.0,<4
 # JupyterLab: dark theme
 jupyterlab-night
 # JupyterLab: Miami nights theme (optional)
 jupyterlab_miami_nights
-jupyterthemes
-jupyterlab_white_theme
- jupyterlab-theme-minimalist
 
 # Python: ipywidget library for Jupyter notebooks (optional)
-ipywidgets>=8.1.1,<9
+ipywidgets>=8.1.3,<9
 # Python: ipyevents library for Jupyter notebooks (optional)
 ipyevents>=2.0.1
 # Python: interative Matplotlib library for Jupyter notebooks (optional)
@@ -34,11 +32,8 @@ ipycanvas>=0.9.1
 # Python: ipyleaflet library for Jupyter notebooks (optional)
 ipyleaflet
 
-# Collapsible headings
-aquirdturtle_collapsible_headings
-
 # Python: plotting libraries (optional)
-plotly>=5,<6
+plotly>=6,<7
 bqplot
 
 # Other
