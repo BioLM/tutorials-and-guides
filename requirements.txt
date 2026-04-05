@@ -38,6 +38,7 @@ bqplot
 
 # Other
 biolmai
+biolmai[pipeline]
 biopython
 requests
 matplotlib
