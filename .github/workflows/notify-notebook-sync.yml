@@ -1,0 +1,84 @@
+name: Notify biolm-web of Notebook Changes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "content/*.ipynb"
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed notebooks
+        id: detect
+        run: |
+          python3 - <<'EOF'
+          import subprocess, json, os
+
+          # For workflow_dispatch, sync all notebooks
+          if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+              result = subprocess.run(
+                  ["find", "content", "-name", "*.ipynb"],
+                  capture_output=True, text=True,
+              )
+              notebooks = [
+                  {"filename": p.split("/")[-1], "change_type": "updated_notebook"}
+                  for p in result.stdout.strip().split("\n") if p
+              ]
+          else:
+              result = subprocess.run(
+                  ["git", "diff", "--name-status", "HEAD~1", "HEAD"],
+                  capture_output=True, text=True,
+              )
+              notebooks = {}
+              for line in result.stdout.strip().split("\n"):
+                  if not line:
+                      continue
+                  parts = line.split("\t")
+                  if len(parts) < 2:
+                      continue
+                  status, path = parts[0], parts[1]
+                  if not path.startswith("content/") or not path.endswith(".ipynb"):
+                      continue
+                  filename = path.split("/")[-1]
+                  if filename not in notebooks:
+                      notebooks[filename] = "new_notebook" if status == "A" else "updated_notebook"
+              notebooks = [{"filename": f, "change_type": ct} for f, ct in notebooks.items()]
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              if notebooks:
+                  fh.write("has_changes=true\n")
+                  fh.write(f"notebooks={json.dumps(notebooks)}\n")
+                  print(f"Detected: {json.dumps(notebooks, indent=2)}")
+              else:
+                  fh.write("has_changes=false\n")
+                  print("No notebook changes detected")
+          EOF
+
+      - name: Generate GitHub App token
+        if: steps.detect.outputs.has_changes == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: biolm-web
+
+      - name: Dispatch to biolm-web
+        if: steps.detect.outputs.has_changes == 'true'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: BioLM/biolm-web
+          event-type: notebook-sync
+          client-payload: |
+            {
+              "notebooks": ${{ steps.detect.outputs.notebooks }},
+              "source_sha": "${{ github.sha }}"
+            }
