@@ -252,3 +252,7 @@ _output
 
 # Pycharm
 .idea/*
+
+# BioLM pipeline SDK cache
+.biolm/
+*.duckdb
