@@ -37,13 +37,22 @@ plotly>=6,<7
 bqplot
 
 # Other
-biolmai
-biolmai[pipeline]
+# biolm-sdk is on TestPyPI until 1.0 is on production PyPI.
+# Install with:
+#   pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ "biolm-sdk[pipeline]"
+# (test runner and notebooks use that form; pins below are documentation only)
+# biolm-sdk[pipeline]
 biopython
 requests
 matplotlib
 numpy
 six
+py3Dmol
+pandas
+scikit-learn
+seaborn
+xgboost
+biotite
 
 # Development
 black
