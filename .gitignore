@@ -250,6 +250,9 @@ dmypy.json
 *.doit.db
 _output
 
+# biolm-sdk pipeline DuckDB cache (created when running pipeline notebooks from content/)
+content/.biolm/
+
 # Pycharm
 .idea/*
 
